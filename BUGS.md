@@ -1,5 +1,14 @@
 # Canonical Bug Registry
 
+## Current validated baseline
+
+- Dedicated Summary LLM routing remains working, including strict dedicated routing with no fallback to the dialogue LLM.
+- Non-blocking background summary generation remains working.
+- Travel/location awareness remains working.
+- Stale conversation/session-end lifecycle protections remain working.
+- Piper/TTS synthesis timeouts and restarts remain open and separate from the participant fixes.
+- Unsupported local-lore embellishment remains open as Bug #6.
+
 ## Bug #1 — Travel / fast-travel awareness
 
 - **Status:** `FIXED / PR OPEN`
@@ -15,7 +24,7 @@
 - **Status:** `VALIDATING / LOCAL CHANGES ONLY`
 - **First observed behavior:** Piper timeouts, process restarts, skipped voice lines, startup greeting problems, combat-related failures, and perceived startup latency.
 - **Root cause:** Not yet established; multiple local diagnostics and experiments exist.
-- **Fix / current approach:** Continuous stderr draining and bounded diagnostics were explored locally. The underlying reliability issue is not declared fixed.
+- **Fix / current approach:** Continuous stderr draining and bounded diagnostics were explored locally. The latest stderr-draining experiment did not fix the underlying reliability issue.
 - **Validation:** Requires further gameplay validation.
 - **Relevant work:** Local-only Mantella changes; intentionally not pushed as a completed fix.
 - **Notes:** Do not treat diagnostics experiments as a resolution.
@@ -62,7 +71,7 @@
 
 ## Bug #7 — Participant transition / generation cancellation and actor identity collision
 
-- **Status:** `FIX IMPLEMENTED / NEEDS GAMEPLAY VALIDATION`
+- **Status:** `FIX IMPLEMENTED / PARTIAL LIVE VALIDATION`
 - **First observed behavior:** Participant transitions could delay dialogue by approximately 6–7 seconds, cancel in-flight generation, produce zero-token responses, and collide when duplicate NPC display names were present.
 - **Root cause:** Participant state was keyed by display name instead of stable actor identity. For example, `Stormcloak Soldier - 0799F9` and `Stormcloak Soldier - 0799F8` shared the same display name but were different actors.
 - **Fix / current approach:**
@@ -70,9 +79,19 @@
   - `src/conversation/context.py`: transient NPC updates resolve by `ref_id`.
   - `src/remember/summaries.py`: summary interval tracking, filtering, and snapshot selection use stable identity; duplicate names receive distinct internal keys.
   - `src/conversation/conversation.py`: in-flight generations receive immutable participant snapshots; participant refreshes defer until generation completion; generation diagnostics were added.
-- **Validation:** Focused automated identity/lifecycle tests pass; live gameplay validation remains required.
+- **Validation:** Focused lifecycle/identity tests, broader lifecycle/character tests, same-name summary regression, compileall, and diff checks passed. Live Skyrim validation confirmed same-name actors are distinguished, separate summary paths are used, first responses are no longer swallowed, and asynchronous summaries do not cancel dialogue.
 - **Relevant work:** Current local Mantella development branch; no new commit or PR yet.
-- **Notes:** Preserve Bug #4 session protections and asynchronous Bug #7 summary behavior. Do not conflate this with Bug #5 speaker authority.
+- **Notes:** Preserve Bug #4 session protections and asynchronous summary behavior. A downstream physical speaker-routing issue remains below, so the broader same-name actor problem is not fully closed. Cold participant-transition latency also remains open: participant changes can produce `static_prefix_changed=True` and roughly 4–8 second first responses, while warm unchanged-prefix turns are typically 1–2 seconds.
+
+### Bug #7a — Same-name physical speaker routing
+
+- **Status:** `OPEN`
+- **First observed behavior:** After female `Stormcloak Soldier` A (`0799F9`) leaves and male `Stormcloak Soldier` B (`0799F8`) joins, Mantella generates B's dialogue and selects B's male voice, but the audio physically originates from A's body.
+- **Root cause:** Under investigation. The stable actor identity survives dialogue generation but appears to be lost in downstream speaker/output routing, where logs and/or APIs still carry only `Stormcloak Soldier`.
+- **Fix / current approach:** Trace and propagate the existing actor/ref ID through Mantella output, protocol, and Papyrus actor selection. Do not use display-name matching or proximity as the correctness mechanism.
+- **Validation:** Live failure reproduced; automated regression coverage pending.
+- **Relevant work:** Follow-up to Bug #7; may require coordinated Mantella and Mantella-Spell changes.
+- **Notes:** This is distinct from Piper voice-model selection and from Bug #5's general speaker authority.
 
 ## Bug #8 — NPC verbally claims an action occurred when no action command executed
 
