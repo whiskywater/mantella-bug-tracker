@@ -85,13 +85,23 @@
 
 ### Bug #7a — Same-name physical speaker routing
 
-- **Status:** `OPEN`
+- **Status:** `FIXED`
 - **First observed behavior:** After female `Stormcloak Soldier` A (`0799F9`) leaves and male `Stormcloak Soldier` B (`0799F8`) joins, Mantella generates B's dialogue and selects B's male voice, but the audio physically originates from A's body.
-- **Root cause:** Under investigation. The stable actor identity survives dialogue generation but appears to be lost in downstream speaker/output routing, where logs and/or APIs still carry only `Stormcloak Soldier`.
-- **Fix / current approach:** Trace and propagate the existing actor/ref ID through Mantella output, protocol, and Papyrus actor selection. Do not use display-name matching or proximity as the correctness mechanism.
-- **Validation:** Live failure reproduced; automated regression coverage pending.
-- **Relevant work:** Follow-up to Bug #7; may require coordinated Mantella and Mantella-Spell changes.
-- **Notes:** This is distinct from Piper voice-model selection and from Bug #5's general speaker authority.
+- **Root cause:** The generated speaker identity was reduced to a display name before the Skyrim handoff, so Papyrus selected the first matching participant.
+- **Fix / current approach:** `mantella_actor_refid` now crosses the protocol boundary and Papyrus resolves the exact actor by FormID first, retaining name fallback only for legacy/unique cases.
+- **Validation:** Live Skyrim validation passed with female and male same-name Stormcloak Soldiers. The correct male voice, physical actor, lip-sync, and first response were preserved; the departing actor did not speak.
+- **Relevant work:** Mantella/Mantella-Spell stable speaker-routing changes; deployment validation completed.
+- **Notes:** This is distinct from Piper voice-model selection and from Bug #5's general speaker authority. Generic-NPC playback is tracked separately below.
+
+### Bug #7b — Generic NPC voice playback after stable speaker routing
+
+- **Status:** `OPEN`
+- **First observed behavior:** A generic `Wood Elf` (`000EFD`) can generate dialogue and successfully synthesize the correct voice, yet produce no audible in-game playback after stable actor-ref routing was deployed.
+- **Root cause:** Under investigation. The generic actor's ref representation or downstream FormID resolution may differ from named/duplicated actors.
+- **Fix / current approach:** Trace Mantella serialization, Papyrus parsing, participant lookup, and final physical actor playback. Preserve stable-ID routing and add safe fallback only when it cannot reintroduce duplicate-name ambiguity.
+- **Validation:** Reproduced before and after removing/re-adding the Wood Elf; successful Piper synthesis alone did not guarantee audible playback.
+- **Relevant work:** Follow-up to Bug #7a; no fix committed yet.
+- **Notes:** Keep separate from general Piper timeouts/restarts and Bug #5 speaker authority.
 
 ## Bug #8 — NPC verbally claims an action occurred when no action command executed
 
