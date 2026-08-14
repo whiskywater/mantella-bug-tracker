@@ -112,3 +112,14 @@
 - **Validation:** None.
 - **Relevant work:** None.
 - **Notes:** Example: an NPC says “I am with you” after being asked to follow, but no `Follow:` action is emitted.
+
+## Bug #9 — Normal dialogue colons can be misparsed as speaker labels
+
+- **Status:** `OPEN / CONFIRMED`
+- **Category:** Multi-NPC response parsing / speaker attribution
+- **First observed behavior:** The LLM generated: `Stormcloak Soldier: I fare well, though the night is cold. The wind howls like a wolf hungry for freedom. You ask how I am, but I ask you:`. Mantella correctly parsed the initial `Stormcloak Soldier:` but later treated `You ask how I am, but I ask you:` as another speaker label. The affected dialogue was discarded.
+- **Root cause:** Not yet proven. The current hypothesis is that multi-NPC parsing treats colon-delimited text too broadly as a possible `CharacterName:` prefix instead of requiring a valid current participant or recognized speaker.
+- **Fix / current approach:** Investigate narrow speaker-transition recognition so ordinary spoken dialogue containing colons remains dialogue while supported action prefixes continue to work.
+- **Validation:** Live failure confirmed; source investigation and regression coverage are still pending.
+- **Relevant work:** None yet.
+- **Notes:** Logs included `Discarding text for character not in conversation: You ask how I am, but I ask you` and `LLM addressed unrecognized character 'You ask how I am, but I ask you'`. Do not claim the precise parser rule until confirmed.

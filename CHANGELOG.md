@@ -11,3 +11,6 @@
 - Confirmed the same-name Stormcloak Soldier physical speaker-routing fix in live Skyrim validation.
 - Recorded the new generic-NPC voice playback regression as Bug #7b after Wood Elf synthesis succeeded but audible playback was absent.
 - Updated Bugs #7, #7a, and #7b with source commits, PR references, and successful live validation of same-name identity, physical speaker routing, and generic-NPC fallback playback.
+- Added confirmed Bug #9 for normal dialogue colons being misparsed as multi-NPC speaker labels.
+- Added `FEATURES.md` with the initial roadmap and status legend for Features #1–#3.
+- Expanded `README.md` to cover bugs, validation, upstream PRs, planned features, and feature implementation status.
