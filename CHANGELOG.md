@@ -14,3 +14,9 @@
 - Added confirmed Bug #9 for normal dialogue colons being misparsed as multi-NPC speaker labels.
 - Added `FEATURES.md` with the initial roadmap and status legend for Features #1–#3.
 - Expanded `README.md` to cover bugs, validation, upstream PRs, planned features, and feature implementation status.
+
+## 2026-08-14
+
+- Marked Bug #9 fixed and live-validated after boundary metadata preserved ordinary grammatical colons in NPC dialogue.
+- Added Bug #9 PR #747 (`b76999b751c664ec31075832f86ced26f999e562`) and recorded the pytest dependency/network limitation alongside successful compileall and diff-check validation.
+- Generalized Bug #8 to action-authority / action-prefix compliance, recording live missing-`Follow:` and unauthorized repeated-`Inventory:` examples. Bug #8 remains open and unimplemented.

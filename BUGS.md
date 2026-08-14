@@ -103,23 +103,23 @@
 - **Relevant work:** Mantella-Spell PR #151 commit `15be8a66abfe7f0f335fcd0722378b76107965cb`.
 - **Notes:** Keep separate from general Piper timeouts/restarts and Bug #5 speaker authority.
 
-## Bug #8 — NPC verbally claims an action occurred when no action command executed
+## Bug #8 — Action-authority / action-prefix compliance failure
 
 - **Status:** `OPEN`
-- **First observed behavior:** An NPC can claim or imply that a state-changing action occurred even when no Mantella action command was emitted or successfully executed.
-- **Root cause:** Dialogue is not yet strictly gated on authoritative action execution state.
+- **First observed behavior:** An NPC can verbally comply with an explicitly requested action without emitting the required executable action prefix, or can emit/re-trigger an action based on prior conversation history when the current player turn does not authorize it.
+- **Root cause:** Dialogue and action-prefix emission are not yet strictly grounded in current-turn action authority and confirmed execution state.
 - **Fix / current approach:** Not yet implemented. An NPC should not claim a state change until Mantella/Skyrim confirms it.
 - **Validation:** None.
 - **Relevant work:** None.
-- **Notes:** Example: an NPC says “I am with you” after being asked to follow, but no `Follow:` action is emitted.
+- **Notes:** Live examples include a Wood Elf saying “If you offer a path that leads away from this... stagnation, then I am ready to walk it. Lead on, Emilia.” without emitting `Follow:`, and a later unrelated turn (`Either you confess and get better, or I leave you.`) emitting `Inventory:` again after Inventory had only been requested on the prior turn. Do not implement as part of Bug #9.
 
 ## Bug #9 — Normal dialogue colons can be misparsed as speaker labels
 
-- **Status:** `OPEN / CONFIRMED`
+- **Status:** `FIXED / VALIDATED`
 - **Category:** Multi-NPC response parsing / speaker attribution
 - **First observed behavior:** The LLM generated: `Stormcloak Soldier: I fare well, though the night is cold. The wind howls like a wolf hungry for freedom. You ask how I am, but I ask you:`. Mantella correctly parsed the initial `Stormcloak Soldier:` but later treated `You ask how I am, but I ask you:` as another speaker label. The affected dialogue was discarded.
-- **Root cause:** Not yet proven. The current hypothesis is that multi-NPC parsing treats colon-delimited text too broadly as a possible `CharacterName:` prefix instead of requiring a valid current participant or recognized speaker.
-- **Fix / current approach:** Investigate narrow speaker-transition recognition so ordinary spoken dialogue containing colons remains dialogue while supported action prefixes continue to work.
-- **Validation:** Live failure confirmed; source investigation and regression coverage are still pending.
-- **Relevant work:** None yet.
-- **Notes:** Logs included `Discarding text for character not in conversation: You ask how I am, but I ask you` and `LLM addressed unrecognized character 'You ask how I am, but I ask you'`. Do not claim the precise parser rule until confirmed.
+- **Root cause:** Response/newline boundary information was discarded before `change_character_parser`, so every colon-delimited unknown prefix was treated as an unauthorized speaker regardless of whether it began a real speaker line.
+- **Fix / current approach:** Response and newline boundary metadata now survives cleaning and sentence accumulation. Unknown speaker prefixes are rejected only at a real response or line boundary; unmarked inline colons remain ordinary dialogue, and recognized action prefixes continue through action parsing.
+- **Validation:** Live Wood Elf validation on 2026-08-14 confirmed `Wood Elf:` was recognized and `But know this:` remained spoken dialogue without unknown-speaker warnings, premature generation stop, or parser exceptions. Live `Inventory:` action parsing also succeeded. `python3 -m compileall -q src tests` and `git diff --check` passed. Focused pytest suites could not run because required dependencies were unavailable and installation failed due network/DNS restrictions.
+- **Relevant work:** Mantella PR [#747](https://github.com/art-from-the-machine/Mantella/pull/747); branch `feature/bug9-colon-boundaries`; commit `b76999b751c664ec31075832f86ced26f999e562`.
+- **Notes:** Source coverage retains rejection for unknown speakers at explicit response/line boundaries and preserves recognized action prefixes. The natural live session did not reproduce an unknown speaker on a newline; that path remains covered by source regression tests.
