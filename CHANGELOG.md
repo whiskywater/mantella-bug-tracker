@@ -10,3 +10,4 @@
 - Recorded the open cold participant-transition latency and confirmed that Piper stderr diagnostics did not resolve Piper reliability.
 - Confirmed the same-name Stormcloak Soldier physical speaker-routing fix in live Skyrim validation.
 - Recorded the new generic-NPC voice playback regression as Bug #7b after Wood Elf synthesis succeeded but audible playback was absent.
+- Updated Bugs #7, #7a, and #7b with source commits, PR references, and successful live validation of same-name identity, physical speaker routing, and generic-NPC fallback playback.

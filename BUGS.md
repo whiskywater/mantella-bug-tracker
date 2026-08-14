@@ -80,8 +80,8 @@
   - `src/remember/summaries.py`: summary interval tracking, filtering, and snapshot selection use stable identity; duplicate names receive distinct internal keys.
   - `src/conversation/conversation.py`: in-flight generations receive immutable participant snapshots; participant refreshes defer until generation completion; generation diagnostics were added.
 - **Validation:** Focused lifecycle/identity tests, broader lifecycle/character tests, same-name summary regression, compileall, and diff checks passed. Live Skyrim validation confirmed same-name actors are distinguished, separate summary paths are used, first responses are no longer swallowed, and asynchronous summaries do not cancel dialogue.
-- **Relevant work:** Current local Mantella development branch; no new commit or PR yet.
-- **Notes:** Preserve Bug #4 session protections and asynchronous summary behavior. A downstream physical speaker-routing issue remains below, so the broader same-name actor problem is not fully closed. Cold participant-transition latency also remains open: participant changes can produce `static_prefix_changed=True` and roughly 4–8 second first responses, while warm unchanged-prefix turns are typically 1–2 seconds.
+- **Relevant work:** Mantella PR #745, commits `e3a8be37b8819727b35596f3ae92278e8e1a4802` and `560a9d494dd03795fe2ae47724dad83db18b69be`; Mantella-Spell PR #151, commit `15be8a66abfe7f0f335fcd0722378b76107965cb`.
+- **Notes:** Same-name participant separation, summary targeting, and first-response preservation are live validated. Cold participant-transition latency remains open: participant changes can produce `static_prefix_changed=True` and roughly 4–8 second first responses, while warm unchanged-prefix turns are typically 1–2 seconds.
 
 ### Bug #7a — Same-name physical speaker routing
 
@@ -90,17 +90,17 @@
 - **Root cause:** The generated speaker identity was reduced to a display name before the Skyrim handoff, so Papyrus selected the first matching participant.
 - **Fix / current approach:** `mantella_actor_refid` now crosses the protocol boundary and Papyrus resolves the exact actor by FormID first, retaining name fallback only for legacy/unique cases.
 - **Validation:** Live Skyrim validation passed with female and male same-name Stormcloak Soldiers. The correct male voice, physical actor, lip-sync, and first response were preserved; the departing actor did not speak.
-- **Relevant work:** Mantella/Mantella-Spell stable speaker-routing changes; deployment validation completed.
-- **Notes:** This is distinct from Piper voice-model selection and from Bug #5's general speaker authority. Generic-NPC playback is tracked separately below.
+- **Relevant work:** Mantella PR #745 commit `560a9d494dd03795fe2ae47724dad83db18b69be`; Mantella-Spell PR #151 commit `15be8a66abfe7f0f335fcd0722378b76107965cb`.
+- **Notes:** This is distinct from Piper voice-model selection and from Bug #5's general speaker authority. Generic-NPC playback fallback is tracked below and is now validated.
 
 ### Bug #7b — Generic NPC voice playback after stable speaker routing
 
-- **Status:** `OPEN`
+- **Status:** `FIXED`
 - **First observed behavior:** A generic `Wood Elf` (`000EFD`) can generate dialogue and successfully synthesize the correct voice, yet produce no audible in-game playback after stable actor-ref routing was deployed.
-- **Root cause:** Under investigation. The generic actor's ref representation or downstream FormID resolution may differ from named/duplicated actors.
-- **Fix / current approach:** Trace Mantella serialization, Papyrus parsing, participant lookup, and final physical actor playback. Preserve stable-ID routing and add safe fallback only when it cannot reintroduce duplicate-name ambiguity.
-- **Validation:** Reproduced before and after removing/re-adding the Wood Elf; successful Piper synthesis alone did not guarantee audible playback.
-- **Relevant work:** Follow-up to Bug #7a; no fix committed yet.
+- **Root cause:** Stable FormID lookup was exclusive. When the normalized generic-NPC reference could not resolve in Papyrus, `NpcSpeak()` was skipped and successful synthesis produced no audible playback.
+- **Fix / current approach:** Stable FormID remains authoritative; unresolved IDs use a unique-name fallback, while ambiguous duplicate-name fallback is refused.
+- **Validation:** Live Skyrim validation passed for Wood Elf `000EFD`; the actor spoke again. Same-name Stormcloak routing continued to pass.
+- **Relevant work:** Mantella-Spell PR #151 commit `15be8a66abfe7f0f335fcd0722378b76107965cb`.
 - **Notes:** Keep separate from general Piper timeouts/restarts and Bug #5 speaker authority.
 
 ## Bug #8 — NPC verbally claims an action occurred when no action command executed
