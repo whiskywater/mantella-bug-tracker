@@ -21,3 +21,8 @@
 - Added Bug #9 PR #747 (`b76999b751c664ec31075832f86ced26f999e562`) and recorded the pytest dependency/network limitation alongside successful compileall and diff-check validation.
 - Generalized Bug #8 to action-authority / action-prefix compliance, recording live missing-`Follow:` and unauthorized repeated-`Inventory:` examples. Bug #8 remains open and unimplemented.
 - Reopened Bug #9 as partially fixed after live and strict pytest evidence showed ordinary grammatical colons at response/line boundaries are still discarded as unknown speakers.
+
+## 2026-08-15
+
+- Recorded the live-validated streamed Equip parser fix on Mantella PR #743 (`feature/equip-action`, commit `76b09f07f099e4ed3281b73dfe16bb4e5c0256b2`). Golden Saint Shield, Stormcloak Cuirass, and Ancient Nord Sword all equipped successfully in Skyrim with authoritative post-equip refresh; redundant post-result Equip remained blocked by current-turn authorization.
+- Added Bug #10: missing-action retry can fabricate an impossible Equip target when authoritative inventory makes the requested item unavailable. Bug #10 remains open and separate from the parser fix.

@@ -113,6 +113,9 @@
 - **Relevant work:** None.
 - **Notes:** Live examples include a Wood Elf saying “If you offer a path that leads away from this... stagnation, then I am ready to walk it. Lead on, Emilia.” without emitting `Follow:`, and a later unrelated turn (`Either you confess and get better, or I leave you.`) emitting `Inventory:` again after Inventory had only been requested on the prior turn. Do not implement as part of Bug #9.
 
+- **Additional validated sub-fix:** The streamed Equip parser regression that dropped the item after an incomplete `Equip:` prefix was fixed on Mantella PR #743 (`feature/equip-action`, commit `76b09f07f099e4ed3281b73dfe16bb4e5c0256b2`). Live Skyrim validation succeeded for Golden Saint Shield, Stormcloak Cuirass, and Ancient Nord Sword, including authoritative post-equip equipment refresh. This parser sub-fix does not close the broader action-authority bug.
+- **Separate issue:** Missing-action retry can fabricate an impossible Equip target; see Bug #10.
+
 ## Bug #9 — Normal dialogue colons can be misparsed as speaker labels
 
 - **Status:** `REOPENED / PARTIALLY FIXED`
@@ -123,3 +126,13 @@
 - **Validation:** The earlier live validation confirmed `Wood Elf:` was recognized and `But know this:` remained spoken dialogue, but newer live and strict pytest evidence shows the fix is incomplete. At a response/line boundary, ordinary prose such as `I have a few things:`, `There is one problem:`, `My plan is simple:`, `The truth is:`, and `Here's what I know:` is still treated as an unknown speaker prefix and discarded. Legitimate labels such as `Lydia: We should move.` must continue to work. `python3 -m compileall -q src tests` and `git diff --check` pass; the five grammatical-colon regressions remain visible strict expected failures.
 - **Relevant work:** Mantella PR [#747](https://github.com/art-from-the-machine/Mantella/pull/747); branch `feature/bug9-colon-boundaries`; commit `b76999b751c664ec31075832f86ced26f999e562`.
 - **Notes:** Previously fixed boundary metadata behavior remains useful for real speaker labels and inline colons, but ordinary unknown prefixes at response/line boundaries remain unresolved. Do not treat Bug #9 as fully validated until those five grammatical-colon cases are corrected. This tracker update does not change Bug #9 production code.
+
+## Bug #10 — Missing-action retry can fabricate impossible Equip target
+
+- **Status:** `OPEN / CONFIRMED`
+- **Category:** Action retry / Equip authorization / impossible-action handling
+- **First observed behavior:** The player asked `Equip the helmet.` while the Wood Elf did not possess a helmet. The model correctly refused: `I do not have a helmet, Emilia. I cannot equip what I do not possess.` Mantella nevertheless treated the missing `Equip:` prefix as a missing requested action and logged `Retrying missing requested action once ... actions=['mantella_npc_equip']`. In a subsequent reproduction, the corrective response fabricated `Equip: Ancient Nord Helmet | I have no helmet to equip, Emilia. However, I am ready to follow your lead.`
+- **Root cause:** Not yet established. The missing-action retry currently treats a syntactic action request as an obligation even when authoritative inventory state makes the requested action impossible, allowing a corrective generation to pressure the model toward an invented target.
+- **Expected behavior:** If an explicitly requested action cannot validly execute because its target/item is absent or not possessed, the NPC may refuse or explain. Mantella must not force a corrective action merely because no prefix was emitted, and nonexistent item names must never be invented to satisfy an action obligation.
+- **Safety observation:** The fabricated helmet did not result in a successful Skyrim equip.
+- **Investigation direction:** Compare accidental omission of a required action prefix with a correct refusal grounded in authoritative inventory. Inspect current-turn obligation detection, inventory/equip authorization, missing-action retry prompts, and Equip target validation. This is separate from the now-live-validated streamed Equip parser fix.
