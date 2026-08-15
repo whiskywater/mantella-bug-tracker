@@ -20,3 +20,4 @@
 - Marked Bug #9 fixed and live-validated after boundary metadata preserved ordinary grammatical colons in NPC dialogue.
 - Added Bug #9 PR #747 (`b76999b751c664ec31075832f86ced26f999e562`) and recorded the pytest dependency/network limitation alongside successful compileall and diff-check validation.
 - Generalized Bug #8 to action-authority / action-prefix compliance, recording live missing-`Follow:` and unauthorized repeated-`Inventory:` examples. Bug #8 remains open and unimplemented.
+- Reopened Bug #9 as partially fixed after live and strict pytest evidence showed ordinary grammatical colons at response/line boundaries are still discarded as unknown speakers.
