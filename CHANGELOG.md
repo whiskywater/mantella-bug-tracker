@@ -24,5 +24,6 @@
 
 ## 2026-08-15
 
+- Recorded the approved Bug #8 action-authority implementation work: immutable per-turn authorization, stable actor/ref-ID scoping, persistent authoritative transfer references, event-before-snapshot ordering, bounded corrective generation, verification-dependent dialogue fencing, and generation-stream cleanup. Validation covered production-flow pytest, headless scenarios, and packaged smoke tests; Bug #8 remains open pending broader action/live validation.
 - Recorded the live-validated streamed Equip parser fix on Mantella PR #743 (`feature/equip-action`, commit `76b09f07f099e4ed3281b73dfe16bb4e5c0256b2`). Golden Saint Shield, Stormcloak Cuirass, and Ancient Nord Sword all equipped successfully in Skyrim with authoritative post-equip refresh; redundant post-result Equip remained blocked by current-turn authorization.
 - Added Bug #10: missing-action retry can fabricate an impossible Equip target when authoritative inventory makes the requested item unavailable. Bug #10 remains open and separate from the parser fix.
