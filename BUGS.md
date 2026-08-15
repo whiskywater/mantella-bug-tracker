@@ -105,12 +105,12 @@
 
 ## Bug #8 — Action-authority / action-prefix compliance failure
 
-- **Status:** `OPEN`
+- **Status:** `IMPLEMENTED / AWAITING LIVE VALIDATION`
 - **First observed behavior:** An NPC can verbally comply with an explicitly requested action without emitting the required executable action prefix, or can emit/re-trigger an action based on prior conversation history when the current player turn does not authorize it.
-- **Root cause:** Dialogue and action-prefix emission are not yet strictly grounded in current-turn action authority and confirmed execution state.
-- **Fix / current approach:** Not yet implemented. An NPC should not claim a state change until Mantella/Skyrim confirms it.
-- **Validation:** None.
-- **Relevant work:** None.
+- **Root cause:** Non-verification-dependent explicit actions such as Follow were allowed to queue ordinary dialogue immediately, even when the current-turn action obligation had not produced an accepted action. This let prose such as “Lead on” imply that Follow had succeeded while no Follow invocation was emitted. Historical/stale action state was also required to remain isolated from the immutable current-turn authorization context.
+- **Fix / current approach:** The action-authority path now holds dialogue for explicit current-turn state-changing obligations until the corresponding current-turn action is accepted. Existing immutable turn/actor authorization, stale-generation rejection, action-only dispatch, and verification-dependent fencing remain in force.
+- **Validation:** Focused Follow regression tests pass for both missing-action prose suppression and valid current-turn Follow dispatch. The action-authorization suite passes with its documented expected failure. Live Skyrim validation is still required for Follow and other non-Equip actions.
+- **Relevant work:** Local Bug #8 action-authority implementation and focused OutputManager/action-authorization tests; Equip parser work remains on Mantella PR #743.
 - **Notes:** Live examples include a Wood Elf saying “If you offer a path that leads away from this... stagnation, then I am ready to walk it. Lead on, Emilia.” without emitting `Follow:`, and a later unrelated turn (`Either you confess and get better, or I leave you.`) emitting `Inventory:` again after Inventory had only been requested on the prior turn. Do not implement as part of Bug #9.
 
 - **Additional validated sub-fix:** The streamed Equip parser regression that dropped the item after an incomplete `Equip:` prefix was fixed on Mantella PR #743 (`feature/equip-action`, commit `76b09f07f099e4ed3281b73dfe16bb4e5c0256b2`). Live Skyrim validation succeeded for Golden Saint Shield, Stormcloak Cuirass, and Ancient Nord Sword, including authoritative post-equip equipment refresh. This parser sub-fix does not close the broader action-authority bug.
