@@ -28,3 +28,10 @@
 - Recorded the live-validated streamed Equip parser fix on Mantella PR #743 (`feature/equip-action`, commit `76b09f07f099e4ed3281b73dfe16bb4e5c0256b2`). Golden Saint Shield, Stormcloak Cuirass, and Ancient Nord Sword all equipped successfully in Skyrim with authoritative post-equip refresh; redundant post-result Equip remained blocked by current-turn authorization.
 - Added Bug #10: missing-action retry can fabricate an impossible Equip target when authoritative inventory makes the requested item unavailable. Bug #10 remains open and separate from the parser fix.
 - Implemented the remaining tested Bug #8 dialogue/action boundary for explicit state-changing requests: prose such as “Lead on” is held and discarded unless the current turn accepts the corresponding Follow/action invocation. Focused action-authority and OutputManager tests pass; live Skyrim validation remains pending, so Bug #8 is not marked fixed.
+
+## 2026-08-16
+
+- Updated Bug #8 to `IMPLEMENTED / CORE LIVE VALIDATED / FINAL REGRESSION CHECKS PENDING` and linked Mantella PR #743 at head `2f6b26035941227de32e6937e2cb9b8d5cc1b8aa`.
+- Recorded live validation of transfer/equipment invalidation, natural clothes re-equip to Roughspun Tunic, category armor Equip to Stormcloak Cuirass, exact shield Equip, and successful Follow execution into Skyrim follower state.
+- Recorded the remaining pending negative Follow, unrelated-turn retrigger, participant-transition, and teardown/next-conversation checks; Bug #8 is not marked fully fixed.
+- Recorded the coherent candidate's reproducible packaging hardening for Tk/Gradio, tiktoken/tiktoken_ext, Silero, Moonshine assets, and preservation of installation-owned Piper and Moonshine runtimes.
